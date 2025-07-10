@@ -1,0 +1,380 @@
+Of course, here is the complete, self-contained client-side web application for scoring kids' nursery rhymes content.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nursery Rhyme Content Scoring System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        .slider-value {
+            min-width: 40px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-6 lg:p-8">
+
+    <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-xl p-6">
+
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Nursery Rhyme Content Scoring System 🎵</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 pb-6 border-b border-gray-200">
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Global Scoring Controls</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="rankImportance" class="block text-sm font-medium text-gray-700">Rank Importance in Score (%)</label>
+                        <div class="flex items-center space-x-3">
+                            <input id="rankImportance" type="range" min="0" max="100" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <span id="rankImportanceValue" class="text-sm font-semibold text-gray-600 slider-value text-center">50%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="viewImpact" class="block text-sm font-medium text-gray-700">View Impact in Score (%)</label>
+                        <div class="flex items-center space-x-3">
+                            <input id="viewImpact" type="range" min="0" max="100" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <span id="viewImpactValue" class="text-sm font-semibold text-gray-600 slider-value text-center">50%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-col justify-center">
+                 <h2 class="text-xl font-semibold text-gray-700 mb-4">Global Actions</h2>
+                <div class="flex flex-wrap gap-3">
+                    <button id="exportCsv" class="flex-grow bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow transition-transform transform hover:scale-105">
+                        <i class="fas fa-file-csv mr-2"></i>Export CSV
+                    </button>
+                    <button id="clearAll" class="flex-grow bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow transition-transform transform hover:scale-105">
+                        <i class="fas fa-trash-alt mr-2"></i>Clear All
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="rhymeForm" class="mb-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Rhyme Data Input</h2>
+            <div class="mb-4">
+                <label for="rhymeName" class="block text-sm font-medium text-gray-700">Rhyme Name</label>
+                <input type="text" id="rhymeName" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., Twinkle Twinkle Little Star">
+            </div>
+
+            <div id="sourceObservationsContainer" class="space-y-4">
+                </div>
+
+            <div class="mt-6 flex flex-wrap gap-4">
+                <button id="addSource" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow transition-transform transform hover:scale-105">
+                    <i class="fas fa-plus mr-2"></i>Add Source
+                </button>
+                <button id="processRhyme" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow transition-transform transform hover:scale-105 flex-grow sm:flex-grow-0">
+                    <i class="fas fa-cogs mr-2"></i>Process Rhyme
+                </button>
+            </div>
+        </div>
+
+        <hr class="my-8">
+
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Individual Rhyme Data Entries</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rhyme Name</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Source</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">View Range</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source Weight</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weighted Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="individualEntriesBody" class="divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <hr class="my-8">
+
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">🏆 Aggregated Rhyme Scores</h2>
+             <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rhyme Name</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Aggregated Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="aggregatedScoresBody" class="divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- PREDEFINED DATA ---
+        const dataSources = {
+            "Your Channel (Last 48 Hrs)": 40,
+            "Your Channel (Last 28 Days - Top 10)": 40,
+            "Similar Competitor (Last 24 Hrs)": 30,
+            "Similar Competitor (Last Year - Same Month)": 25,
+            "Dissimilar Competitor (Last 24 Hrs)": 15,
+            "Dissimilar Competitor (Last Year - Same Month)": 10,
+            "Google Trends (Past Year)": 20,
+            "Other Platforms (General)": 10
+        };
+
+        const viewRanges = {
+            "0 views": 0,
+            "1 - 10,000 views": 2,
+            "10,001 - 50,000 views": 4,
+            "50,001 - 100,000 views": 6,
+            "100,001 - 500,000 views": 8,
+            "500,001 - 1,000,000 views": 9,
+            "1,000,001+ views": 10
+        };
+
+        // --- GLOBAL STATE ---
+        let allRhymeObservations = [];
+        let observationIdCounter = 0;
+
+        // --- DOM ELEMENTS ---
+        const rhymeNameInput = document.getElementById('rhymeName');
+        const observationsContainer = document.getElementById('sourceObservationsContainer');
+        const rankImportanceSlider = document.getElementById('rankImportance');
+        const viewImpactSlider = document.getElementById('viewImpact');
+        const rankImportanceValue = document.getElementById('rankImportanceValue');
+        const viewImpactValue = document.getElementById('viewImpactValue');
+
+        const individualEntriesBody = document.getElementById('individualEntriesBody');
+        const aggregatedScoresBody = document.getElementById('aggregatedScoresBody');
+
+        // --- EVENT LISTENERS ---
+        document.getElementById('addSource').addEventListener('click', addSourceObservationRow);
+        document.getElementById('processRhyme').addEventListener('click', processRhyme);
+        document.getElementById('clearAll').addEventListener('click', clearAll);
+        document.getElementById('exportCsv').addEventListener('click', exportToCSV);
+
+        rankImportanceSlider.addEventListener('input', (e) => rankImportanceValue.textContent = `${e.target.value}%`);
+        viewImpactSlider.addEventListener('input', (e) => viewImpactValue.textContent = `${e.target.value}%`);
+
+        // --- FUNCTIONS ---
+
+        function addSourceObservationRow() {
+            const observationId = observationIdCounter++;
+            const row = document.createElement('div');
+            row.className = 'grid grid-cols-1 md:grid-cols-12 gap-3 p-3 bg-gray-50 border rounded-lg observation-row';
+            row.dataset.id = observationId;
+
+            row.innerHTML = `
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-medium text-gray-600">Data Source</label>
+                    <select class="data-source mt-1 block w-full p-2 border-gray-300 rounded-md shadow-sm text-sm">${Object.keys(dataSources).map(source => `<option value="${source}">${source}</option>`).join('')}</select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-medium text-gray-600">Rank (1-10)</label>
+                    <input type="number" min="1" max="10" value="1" class="rank-input mt-1 block w-full p-2 border-gray-300 rounded-md shadow-sm text-sm">
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-medium text-gray-600">View Range</label>
+                    <select class="view-range mt-1 block w-full p-2 border-gray-300 rounded-md shadow-sm text-sm">${Object.keys(viewRanges).map(range => `<option value="${range}">${range}</option>`).join('')}</select>
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-medium text-gray-600">Source Weight</label>
+                    <div class="flex items-center space-x-2 mt-1">
+                        <input type="range" min="0" max="100" class="source-weight-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <span class="source-weight-value text-sm font-semibold text-gray-600 slider-value text-center"></span>
+                    </div>
+                </div>
+                <div class="md:col-span-1 flex items-end justify-center">
+                    <button class="remove-row-btn text-red-500 hover:text-red-700 p-2"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            `;
+            observationsContainer.appendChild(row);
+
+            // Set initial weight and add listeners to new row elements
+            const sourceSelect = row.querySelector('.data-source');
+            const weightSlider = row.querySelector('.source-weight-slider');
+            const weightValue = row.querySelector('.source-weight-value');
+
+            function updateWeight() {
+                const selectedSource = sourceSelect.value;
+                const defaultWeight = dataSources[selectedSource];
+                weightSlider.value = defaultWeight;
+                weightValue.textContent = `${defaultWeight}%`;
+            }
+
+            sourceSelect.addEventListener('change', updateWeight);
+            weightSlider.addEventListener('input', (e) => weightValue.textContent = `${e.target.value}%`);
+            row.querySelector('.remove-row-btn').addEventListener('click', () => row.remove());
+
+            updateWeight(); // Set initial weight
+        }
+
+        function processRhyme() {
+            const rhymeName = rhymeNameInput.value.trim();
+            if (!rhymeName) {
+                alert('Please enter a Rhyme Name.');
+                return;
+            }
+
+            const observationRows = observationsContainer.querySelectorAll('.observation-row');
+            if (observationRows.length === 0) {
+                alert('Please add at least one source observation.');
+                return;
+            }
+
+            observationRows.forEach(row => {
+                const rankInput = row.querySelector('.rank-input').value;
+                if (!rankInput || rankInput < 1 || rankInput > 10) {
+                    alert('Please ensure all ranks are between 1 and 10.');
+                    return;
+                }
+
+                const observation = {
+                    id: Date.now() + Math.random(), // Unique ID for each observation
+                    originalRhymeName: rhymeName,
+                    normalizedRhymeName: rhymeName.toLowerCase(),
+                    dataSource: row.querySelector('.data-source').value,
+                    rank: parseInt(rankInput, 10),
+                    viewRange: row.querySelector('.view-range').value,
+                    sourceWeight: parseInt(row.querySelector('.source-weight-slider').value, 10)
+                };
+                allRhymeObservations.push(observation);
+            });
+            
+            updateTables();
+            observationsContainer.innerHTML = ''; // Clear input rows
+            addSourceObservationRow(); // Add a fresh one
+        }
+        
+        function updateTables() {
+            updateIndividualEntriesTable();
+            updateAggregatedScoresTable();
+        }
+
+        function updateIndividualEntriesTable() {
+            individualEntriesBody.innerHTML = '';
+            const rankImportance = parseInt(rankImportanceSlider.value, 10);
+            const viewImpactImportance = parseInt(viewImpactSlider.value, 10);
+
+            allRhymeObservations.forEach(obs => {
+                const scoreFromRank = 11 - obs.rank;
+                const viewImpactScore = viewRanges[obs.viewRange];
+
+                const observationScore = (scoreFromRank * (rankImportance / 100)) + (viewImpactScore * (viewImpactImportance / 100));
+                const weightedScore = observationScore * (obs.sourceWeight / 100);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-800">${obs.originalRhymeName}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${obs.dataSource}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${obs.rank}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${obs.viewRange}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${obs.sourceWeight}%</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm font-bold text-gray-800">${weightedScore.toFixed(2)}</td>
+                `;
+                individualEntriesBody.appendChild(row);
+            });
+        }
+        
+        function updateAggregatedScoresTable() {
+            aggregatedScoresBody.innerHTML = '';
+            const rankImportance = parseInt(rankImportanceSlider.value, 10);
+            const viewImpactImportance = parseInt(viewImpactSlider.value, 10);
+
+            const aggregatedScores = {};
+
+            allRhymeObservations.forEach(obs => {
+                const scoreFromRank = 11 - obs.rank;
+                const viewImpactScore = viewRanges[obs.viewRange];
+                
+                const observationScore = (scoreFromRank * (rankImportance / 100)) + (viewImpactScore * (viewImpactImportance / 100));
+                const weightedScore = observationScore * (obs.sourceWeight / 100);
+                
+                if (!aggregatedScores[obs.normalizedRhymeName]) {
+                    aggregatedScores[obs.normalizedRhymeName] = {
+                        originalName: obs.originalRhymeName,
+                        totalScore: 0
+                    };
+                }
+                aggregatedScores[obs.normalizedRhymeName].totalScore += weightedScore;
+            });
+            
+            // Sort by score descending
+            const sortedRhymes = Object.values(aggregatedScores).sort((a, b) => b.totalScore - a.totalScore);
+
+            sortedRhymes.forEach(rhyme => {
+                 const row = document.createElement('tr');
+                 row.innerHTML = `
+                    <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">${rhyme.originalName}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm font-bold text-indigo-600">${rhyme.totalScore.toFixed(2)}</td>
+                `;
+                aggregatedScoresBody.appendChild(row);
+            });
+        }
+
+
+        function clearAll() {
+            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+                allRhymeObservations = [];
+                rhymeNameInput.value = '';
+                observationsContainer.innerHTML = '';
+                addSourceObservationRow();
+                updateTables();
+                rankImportanceSlider.value = 50;
+                viewImpactSlider.value = 50;
+                rankImportanceValue.textContent = '50%';
+                viewImpactValue.textContent = '50%';
+            }
+        }
+
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Add Individual Entries
+            csvContent += "Individual Rhyme Data Entries\n";
+            csvContent += "Rhyme Name,Data Source,Rank,View Range,Source Weight (%),Weighted Score\n";
+            individualEntriesBody.querySelectorAll('tr').forEach(tr => {
+                const row = [];
+                tr.querySelectorAll('td').forEach(td => row.push(`"${td.textContent.trim()}"`));
+                csvContent += row.join(',') + "\n";
+            });
+            
+            csvContent += "\n"; // Spacer
+            
+            // Add Aggregated Scores
+            csvContent += "Aggregated Rhyme Scores\n";
+            csvContent += "Rhyme Name,Total Aggregated Score\n";
+             aggregatedScoresBody.querySelectorAll('tr').forEach(tr => {
+                const row = [];
+                tr.querySelectorAll('td').forEach(td => row.push(`"${td.textContent.trim()}"`));
+                csvContent += row.join(',') + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "rhyme_scores_export.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- INITIALIZATION ---
+        addSourceObservationRow();
+    });
+    </script>
+
+</body>
+</html>
+```
