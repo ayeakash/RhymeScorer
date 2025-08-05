@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BabyBillion Interactive Production Playbook</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+        }
+        .timeline-container {
+            position: relative;
+        }
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: #374151;
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+        .stage-card {
+            position: relative;
+            z-index: 1;
+            background-color: #1f2937;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .stage-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background-color: #1f2937;
+            border: 4px solid #374151;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        .checklist-item {
+            background-color: #374151;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+        }
+        .checklist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .form-checkbox {
+            width: 1.25em;
+            height: 1.25em;
+            margin-right: 0.75em;
+            background-color: #1f2937;
+            border-radius: 0.25rem;
+            border: 1px solid #4b5563;
+            appearance: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+        .form-checkbox:checked {
+            background-color: #4f46e5;
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+            border-color: #4f46e5;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background-color: #1f2937;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 600px;
+            width: 90%;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+        .reason-box {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out, margin-top 0.5s ease-in-out, padding 0.5s ease-in-out;
+            margin-top: 0;
+            padding-top: 0;
+        }
+        .reason-box.visible {
+            max-height: 100px;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #4b5563;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-slate-300">
+
+    <nav class="fixed top-0 left-0 h-screen w-64 bg-gray-900 p-6 overflow-y-auto">
+        <div class="space-y-6">
+            <!-- Logo/Home Link -->
+            <div class="mb-8">
+                <a href="index.html" class="text-white hover:text-gray-300 flex items-center space-x-2">
+                    <i class="fas fa-home"></i>
+                    <span class="font-bold">Home</span>
+                </a>
+            </div>
+            
+            <!-- Navigation Links -->
+            <div class="space-y-2">
+                <h3 class="text-gray-400 uppercase text-sm font-semibold">Stages</h3>
+                <a href="#writers-room" class="block text-gray-300 hover:text-white hover:bg-gray-800 px-4 py-2 rounded-lg">
+                    💡 Writer's Room
+                </a>
+                <a href="#sound-booth" class="block text-gray-300 hover:text-white hover:bg-gray-800 px-4 py-2 rounded-lg">
+                    🎵 Sound Booth
+                </a>
+                <a href="#animation" class="block text-gray-300 hover:text-white hover:bg-gray-800 px-4 py-2 rounded-lg">
+                    🎨 Animation
+                </a>
+                <a href="#final-review" class="block text-gray-300 hover:text-white hover:bg-gray-800 px-4 py-2 rounded-lg">
+                    ✨ Final Review
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Adjust main content to account for sidebar -->
+    <div class="ml-64">
+        <div class="container mx-auto p-6 md:p-12 max-w-5xl">
+
+            <header class="text-center mb-16">
+                <h1 class="text-5xl md:text-6xl font-black text-white mb-4">BabyBillion Production Playbook</h1>
+                <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto">An interactive guide to our end-to-end production workflow.</p>
+            </header>
+
+            <div class="timeline-container">
+                <div class="timeline-line hidden md:block"></div>
+                <div class="space-y-16">
+
+                    <!-- Stage 1: The Writer's Room -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-8">
+                        <div class="stage-card p-8" data-stage="Stage 1: The Writer's Room">
+                            <p class="text-sm font-bold text-indigo-400">STAGE 01</p>
+                            <h2 class="text-3xl font-bold text-white mb-2">The Writer's Room</h2>
+                            <p class="text-slate-400 mb-6"><strong>Goal:</strong> To greenlight a concept that is creative, on-brand, and technically feasible.</p>
+                            <div class="space-y-3">
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>✨ Smooth Reveal-to-Activity Transition</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>💥 High-Engagement First Second</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>⚡ Action/Reaction/Conflict in 4s</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>📈 Escalating Conflict</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>👀 "Show, Don't Tell" Principle</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🔥 High-Energy Ending</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                            </div>
+                            <div class="mt-6 pt-6 border-t border-slate-700">
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Signed Off By</label>
+                                <input type="text" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Enter name(s)...">
+                                <button class="generate-summary-btn mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Generate Summary</button>
+                            </div>
+                        </div>
+                        <div class="hidden md:block stage-icon">💡</div>
+                        <div class="hidden md:block"></div>
+                    </div>
+
+                    <!-- Stage 2: The Sound Booth -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-8">
+                        <div class="hidden md:block"></div>
+                        <div class="hidden md:block stage-icon">🎵</div>
+                        <div class="stage-card p-8" data-stage="Stage 2: The Sound Booth">
+                            <p class="text-sm font-bold text-rose-400">STAGE 02</p>
+                            <h2 class="text-3xl font-bold text-white mb-2">The Sound Booth</h2>
+                            <p class="text-slate-400 mb-6"><strong>Goal:</strong> To produce a final, mixed master track that is ready for animation timing.</p>
+                            <div class="space-y-3">
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🎶 Engaging & Dynamic Composition</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>📈 Dynamic Range Matches Script</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🔊 Strategic SFX Integration</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                 <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🗣️ Vocal Consistency Across Videos</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                 <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🥁 Rhythm & Tempo Lock</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                 <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🎚️ Final Mix Quality</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                 <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>💿 Master Track Delivered</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                            </div>
+                             <div class="mt-6 pt-6 border-t border-slate-700">
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Signed Off By</label>
+                                <input type="text" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Enter name(s)...">
+                                <button class="generate-summary-btn mt-4 w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded">Generate Summary</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stage 3: The Design Desk -->
+                     <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-8">
+                        <div class="stage-card p-8" data-stage="Stage 3: The Design Desk">
+                            <p class="text-sm font-bold text-amber-400">STAGE 03</p>
+                            <h2 class="text-3xl font-bold text-white mb-2">The Design Desk</h2>
+                            <p class="text-slate-400 mb-6"><strong>Goal:</strong> To finalize all visual assets, ensuring they are approved and technically ready for animation.</p>
+                            <div class="space-y-3">
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>👤 Character Design Approval</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🏞️ Background & Prop Design</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🎨 Color Palette Lock</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>📂 Technical Readiness</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>📚 Asset Library Updated</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                            </div>
+                            <div class="mt-6 pt-6 border-t border-slate-700">
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Signed Off By</label>
+                                <input type="text" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Enter name(s)...">
+                                <button class="generate-summary-btn mt-4 w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded">Generate Summary</button>
+                            </div>
+                        </div>
+                        <div class="hidden md:block stage-icon">🎨</div>
+                        <div class="hidden md:block"></div>
+                    </div>
+
+                    <!-- Stage 4: The Animation Stage -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-8">
+                        <div class="hidden md:block"></div>
+                        <div class="hidden md:block stage-icon">🏃</div>
+                        <div class="stage-card p-8" data-stage="Stage 4: The Animation Stage">
+                            <p class="text-sm font-bold text-sky-400">STAGE 04</p>
+                            <h2 class="text-3xl font-bold text-white mb-2">The Animation Stage</h2>
+                            <p class="text-slate-400 mb-6"><strong>Goal:</strong> To approve the final animation performance before rendering and compositing.</p>
+                            <div class="space-y-3">
+                               <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🎥 Dynamic Camera Movement (No static shots >1s)</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                               <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🖼️ BG Parallax & Life</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                               <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🎭 Performance Quality & Sync</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                               <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🐞 Technical Polish (No glitches)</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                               <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>👍 Final Animation Approval</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                            </div>
+                            <div class="mt-6 pt-6 border-t border-slate-700">
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Signed Off By</label>
+                                <input type="text" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Enter name(s)...">
+                                <button class="generate-summary-btn mt-4 w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded">Generate Summary</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stage 5: The Finishing Suite -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-8">
+                        <div class="stage-card p-8" data-stage="Stage 5: The Finishing Suite">
+                            <p class="text-sm font-bold text-teal-400">STAGE 05</p>
+                            <h2 class="text-3xl font-bold text-white mb-2">The Finishing Suite</h2>
+                            <p class="text-slate-400 mb-6"><strong>Goal:</strong> To ensure the final rendered video is technically flawless before the final creative review.</p>
+                            <div class="space-y-3">
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>✨ VFX & Effects Integration</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🖥️ Final Render Check</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🔊 Audio Sync & Levels</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>🌈 Color Consistency</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>©️ Branding, Intro & Outro</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                            </div>
+                            <div class="mt-6 pt-6 border-t border-slate-700">
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Signed Off By</label>
+                                <input type="text" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Enter name(s)...">
+                                <button class="generate-summary-btn mt-4 w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded">Generate Summary</button>
+                            </div>
+                        </div>
+                        <div class="hidden md:block stage-icon">🔧</div>
+                        <div class="hidden md:block"></div>
+                    </div>
+
+                    <!-- Stage 6: The Screening Room -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-8">
+                        <div class="hidden md:block"></div>
+                        <div class="hidden md:block stage-icon">🚀</div>
+                        <div class="stage-card p-8" data-stage="Stage 6: The Screening Room">
+                            <p class="text-sm font-bold text-lime-400">STAGE 06</p>
+                            <h2 class="text-3xl font-bold text-white mb-2">The Screening Room</h2>
+                            <p class="text-slate-400 mb-6"><strong>Goal:</strong> The final sign-off to confirm the video is ready for public release.</p>
+                            <div class="space-y-3">
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>📏 Video Resolution Check</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>👑 Brand Alignment</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>📝 Publishing Assets (Subs, Title, Thumb)</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>💖 Overall Impact</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                                 <div class="checklist-item"><div class="checklist-header"><label class="flex items-center cursor-pointer w-full"><input type="checkbox" class="form-checkbox"><span>📊 ITTI Framework Alignment</span></label></div><div class="reason-box"><textarea class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Reason for not checking..."></textarea></div></div>
+                            </div>
+                            <div class="mt-6 pt-6 border-t border-slate-700">
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Signed Off By</label>
+                                <input type="text" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 text-white" placeholder="Enter name(s)...">
+                                <button class="generate-summary-btn mt-4 w-full bg-lime-600 hover:bg-lime-700 text-white font-bold py-2 px-4 rounded">Generate Summary</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <footer class="text-center mt-16">
+                <p class="text-slate-500">A clear process for a creative future.</p>
+            </footer>
+
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="summaryModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle" class="text-2xl font-bold text-white mb-4">Stage Summary</h3>
+            <textarea id="modalTextarea" readonly class="w-full h-64 bg-gray-900 border border-slate-600 rounded-md p-2 text-slate-300 font-mono text-sm"></textarea>
+            <div class="mt-4 flex justify-between items-center">
+                <button id="copySummaryBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Copy to Clipboard</button>
+                <button id="closeModalBtn" class="text-slate-400 hover:text-white font-bold py-2 px-4 rounded">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Validation Modal -->
+    <div id="validationModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-white mb-4">Explanations Required</h3>
+            <p class="text-slate-400 mb-6">Please provide a reason for each unchecked item before generating the summary. The required fields have been highlighted.</p>
+            <button id="closeValidationModalBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const summaryButtons = document.querySelectorAll('.generate-summary-btn');
+            const summaryModal = document.getElementById('summaryModal');
+            const validationModal = document.getElementById('validationModal');
+            
+            const modalTitle = document.getElementById('modalTitle');
+            const modalTextarea = document.getElementById('modalTextarea');
+            const copySummaryBtn = document.getElementById('copySummaryBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const closeValidationModalBtn = document.getElementById('closeValidationModalBtn');
+
+            document.querySelectorAll('.form-checkbox').forEach(checkbox => {
+                const reasonBox = checkbox.closest('.checklist-item').querySelector('.reason-box');
+                if (reasonBox) {
+                    checkbox.addEventListener('change', () => {
+                        reasonBox.classList.toggle('visible', !checkbox.checked);
+                    });
+                }
+            });
+
+            summaryButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const card = button.closest('.stage-card');
+                    const stageName = card.dataset.stage;
+                    const checklistItems = card.querySelectorAll('.checklist-item');
+                    const signOffBy = card.querySelector('input[type="text"]').value || 'Pending';
+                    
+                    let validationPassed = true;
+                    let completedCount = 0;
+                    let totalCount = checklistItems.length;
+                    let pendingItems = [];
+
+                    card.querySelectorAll('.reason-box textarea').forEach(box => box.classList.remove('border-red-500'));
+
+                    checklistItems.forEach(item => {
+                        const cb = item.querySelector('.form-checkbox');
+                        const reasonTextarea = item.querySelector('textarea');
+                        if (cb.checked) {
+                            completedCount++;
+                        } else {
+                            const label = item.querySelector('span').textContent;
+                            if (reasonTextarea && reasonTextarea.value.trim() === '') {
+                                validationPassed = false;
+                                reasonTextarea.classList.add('border-red-500');
+                            }
+                            pendingItems.push({label, reason: reasonTextarea.value.trim()});
+                        }
+                    });
+
+                    if (!validationPassed) {
+                        validationModal.classList.add('visible');
+                        return;
+                    }
+
+                    let summary = `**SIGN-OFF SUMMARY: ${stageName.toUpperCase()}**\n`;
+                    summary += `-----------------------------------\n`;
+                    summary += `**Status:** ${completedCount} / ${totalCount} Items Complete\n`;
+                    summary += `**Signed Off By:** ${signOffBy}\n\n`;
+
+                    if (pendingItems.length > 0) {
+                        summary += `**ACTION ITEMS (Requires Attention):**\n`;
+                        pendingItems.forEach(item => {
+                            summary += `* **${item.label}:** ${item.reason}\n`;
+                        });
+                    } else {
+                        summary += `**All items completed.**\n`;
+                    }
+                    
+                    modalTitle.textContent = `${stageName} - Summary`;
+                    modalTextarea.value = summary;
+                    summaryModal.classList.add('visible');
+                });
+            });
+
+            copySummaryBtn.addEventListener('click', () => {
+                modalTextarea.select();
+                document.execCommand('copy');
+                copySummaryBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copySummaryBtn.textContent = 'Copy to Clipboard';
+                }, 2000);
+            });
+
+            closeModalBtn.addEventListener('click', () => summaryModal.classList.remove('visible'));
+            closeValidationModalBtn.addEventListener('click', () => validationModal.classList.remove('visible'));
+            
+            summaryModal.addEventListener('click', (e) => {
+                if (e.target === summaryModal) summaryModal.classList.remove('visible');
+            });
+            validationModal.addEventListener('click', (e) => {
+                if (e.target === validationModal) validationModal.classList.remove('visible');
+            });
+        });
+    </script>
+</body>
+</html>
